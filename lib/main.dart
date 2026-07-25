@@ -1,19 +1,29 @@
-import 'package:eshop_app/app/routes/app_pages.dart';
-import 'package:eshop_app/presentation/screens/welcome_screen.dart';
+import 'package:eshop_app/presentation/cubit/auth/auth_cubit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'app/routes/app_routes.dart';
+import 'injection_container.dart';
 
 void main() {
-  runApp(const MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+
+  setupDependencies();
+  runApp(BlocProvider(
+    create: (_) => sl<AuthCubit>(),
+    child: const MyApp(),
+  ));
+
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      home: WelcomeScreen(),
-   routes:  AppPages.routes,
+      routerConfig: appRouter,
+
     );
   }
 }

@@ -1,21 +1,17 @@
 import 'package:fpdart/fpdart.dart';
-import 'package:eshop_app/domain/auth/repositories/auth_repository.dart';
 import 'package:eshop_app/core/network/rest/errors/failures.dart';
+import 'package:eshop_app/domain/auth/repositories/auth_repository.dart';
 
-class SignUpUseCase {
+class LoginUseCase {
   final AuthRepository repository;
 
-  SignUpUseCase(this.repository);
+  LoginUseCase(this.repository);
 
   Future<Either<ServerFailure, String>> call({
-    required String firstName,
-    required String lastName,
     required String email,
     required String password,
   }) {
-    return repository.signUp(
-      firstName: firstName,
-      lastName: lastName,
+    return repository.login(
       email: email,
       password: password,
     );

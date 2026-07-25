@@ -1,12 +1,14 @@
-import 'package:eshop_app/app/routes/app_routes.dart';
-import 'package:flutter/material.dart';
+class AppRoutes {
+  static const String welcome = '/welcome';
+  static const String signup = '/create_acc';
+  static const String otp = '/otp';
+  static const String login = '/login';
+  
+  // Shell Routes
+  static const String home = '/';
+  static const String cart = '/cart';
+  static const String settings = '/settings';
 
-import '../../presentation/screens/welcome_screen.dart';
-
-abstract class AppPages{
-
-static Map<String, WidgetBuilder> routes = {
-AppRoutes.welcome: (_) => const WelcomeScreen()
-
-};}
-
+  static const String productDetails = '/product/:id';
+  static const String profile = '/profile';
+}

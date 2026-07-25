@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 
 class CustomButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final Color backgroundColor;
   final Color textColor;
+  final bool isLoading;
 
   const CustomButton({
     super.key,
@@ -14,6 +15,7 @@ class CustomButton extends StatelessWidget {
     required this.onPressed,
     this.backgroundColor = AppColors.primaryOrange,
     this.textColor = AppColors.textPrimary,
+    this.isLoading = false,
   });
 
   @override
@@ -22,7 +24,7 @@ class CustomButton extends StatelessWidget {
       width: double.infinity,
       height: AppDesign.buttonHeight,
       child: ElevatedButton(
-        onPressed: onPressed,
+        onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor,
           foregroundColor: textColor,
@@ -31,13 +33,19 @@ class CustomButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppDesign.buttonRadius),
           ),
         ),
-        child: Text(
-          text,
-          style: const TextStyle(
-            fontSize: AppDesign.buttonFontSize,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        child: isLoading
+            ? const SizedBox(
+                height: 24,
+                width: 24,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+              )
+            : Text(
+                text,
+                style: const TextStyle(
+                  fontSize: AppDesign.buttonFontSize,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
       ),
     );
   }
