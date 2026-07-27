@@ -1,4 +1,4 @@
-import 'package:eshop_app/presentation/cubit/auth/auth_cubit.dart';
+import 'package:eshop_app/presentation/cubit/app/app_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -9,11 +9,7 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
   setupDependencies();
-  runApp(BlocProvider(
-    create: (_) => sl<AuthCubit>(),
-    child: const MyApp(),
-  ));
-
+  runApp(BlocProvider(create: (_) => sl<AppCubit>(), child: const MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -23,9 +19,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       routerConfig: appRouter,
-
     );
   }
 }
-
-

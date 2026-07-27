@@ -1,0 +1,199 @@
+import 'package:eshop_app/core/network/rest/api/api_consumer.dart';
+import 'package:eshop_app/core/network/rest/api/end_points.dart';
+import 'package:eshop_app/core/network/rest/auth_token_storage.dart';
+import 'package:eshop_app/domain/entities/product.dart';
+import 'package:fpdart/fpdart.dart';
+import 'package:eshop_app/core/network/rest/errors/failures.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class AuthRemoteDataSource {
+  final ApiConsumer apiConsumer;
+
+  AuthRemoteDataSource(this.apiConsumer);
+
+  Future<Either<ServerFailure, Map<String, dynamic>>> signUp({
+    required String firstName,
+    required String lastName,
+    required String email,
+    required String password,
+  }) {
+    return apiConsumer.post(
+      path: EndPoints.register,
+      body: {
+        'firstName': firstName,
+        'lastName': lastName,
+        'email': email,
+        'password': password,
+      },
+    );
+  }
+
+  Future<Either<ServerFailure, Map<String, dynamic>>> login({
+    required String email,
+    required String password,
+  }) {
+    return apiConsumer.post(
+      path: EndPoints.login,
+      body: {'email': email, 'password': password},
+    );
+  }
+
+  Future<Either<ServerFailure, Map<String, dynamic>>> verifyEmail({
+    required String email,
+    required String otp,
+  }) {
+    return apiConsumer.post(
+      path: EndPoints.verifyEmail,
+      body: {'email': email, 'otp': otp},
+    );
+  }
+
+  Future<Either<ServerFailure, Map<String, dynamic>>> resendOtp({
+    required String email,
+  }) {
+    return apiConsumer.post(path: EndPoints.resendOtp, body: {'email': email});
+  }
+}
+
+class OnboardingModel extends OnboardingEntity {
+  const OnboardingModel({
+    required super.title,
+    required super.description,
+    required super.imagePath,
+  });
+
+  static List<OnboardingModel> get onboardingPages => const [
+    OnboardingModel(
+      title: 'Welcome',
+      description:
+          'Discover thousands of top brands in one seamless app experience.',
+      imagePath: 'assets/onboardingOne.png',
+    ),
+    OnboardingModel(
+      title: 'Connect',
+      description: 'Stay Connected With Your Favorite Brands Easily.',
+      imagePath: 'assets/two.png',
+    ),
+    OnboardingModel(
+      title: 'Explore',
+      description:
+          'Get exclusive offers and customized deals tailored just for you.',
+      imagePath: 'assets/three.png',
+    ),
+  ];
+}
+
+class ProductRemoteDataSource {
+  final ApiConsumer _api;
+  final AuthTokenStorage _tokenStorage;
+
+  ProductRemoteDataSource(this._api, this._tokenStorage);
+
+  Future<Either<ServerFailure, List<Product>>> getProducts() async {
+    final token = await _tokenStorage.read();
+    final result = await _api.get(
+      path: EndPoints.products,
+      headers: token == null || token.isEmpty
+          ? null
+          : {'Authorization': 'Bearer $token'},
+    );
+    return result.map((data) {
+      final itemsList = _extractProductItems(data);
+
+      return itemsList
+          .whereType<Map>()
+          .map((item) => Product.fromJson(Map<String, dynamic>.from(item)))
+            .toList();
+    });
+  }
+
+  List<dynamic> _extractProductItems(dynamic value) {
+    if (value is List) return value;
+    if (value is! Map) return const [];
+
+    final data = Map<String, dynamic>.from(value);
+    for (final key in const ['items', 'products', 'data', 'result']) {
+      final items = _extractProductItems(data[key]);
+      if (items.isNotEmpty) return items;
+    }
+    return const [];
+  }
+
+  Future<Either<ServerFailure, Product>> getProductById(String id) async {
+    final token = await _tokenStorage.read();
+    final result = await _api.get(
+      path: EndPoints.productDetails(id),
+      headers: token == null || token.isEmpty
+          ? null
+          : {'Authorization': 'Bearer $token'},
+    );
+    return result.map((data) {
+      final Map<String, dynamic> item = data['data'] ?? data;
+      return Product.fromJson(item);
+    });
+  }
+}
+
+abstract class SplashLocalDataSource {
+  Future<bool> isFirstTime();
+  Future<void> setFirstTimeCompleted();
+}
+
+class SplashLocalDataSourceImpl implements SplashLocalDataSource {
+  final SharedPreferences sharedPreferences;
+
+  SplashLocalDataSourceImpl({required this.sharedPreferences});
+
+  static const String _firstTimeKey = 'is_first_time';
+
+  @override
+  Future<bool> isFirstTime() async {
+    return sharedPreferences.getBool(_firstTimeKey) ?? true;
+  }
+
+  @override
+  Future<void> setFirstTimeCompleted() async {
+    await sharedPreferences.setBool(_firstTimeKey, false);
+  }
+}
+
+abstract class CategoryRemoteDataSource {
+  Future<List<CategoryModel>> getCategories();
+}
+
+class CategoryRemoteDataSourceImpl implements CategoryRemoteDataSource {
+  final ApiConsumer _api;
+  final AuthTokenStorage _tokenStorage;
+
+  CategoryRemoteDataSourceImpl(this._api, this._tokenStorage);
+
+  @override
+  Future<List<CategoryModel>> getCategories() async {
+    final token = await _tokenStorage.read();
+    if (token == null || token.isEmpty) {
+      throw Exception('Please log in to load categories.');
+    }
+
+    final result = await _api.get(
+      path: EndPoints.categories,
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    return result.fold(
+      (failure) => throw Exception(failure.message),
+      (data) {
+        final rawCategories = data['items'] ?? data['data'] ?? data['categories'] ?? data;
+        if (rawCategories is! List) {
+          throw Exception('Invalid categories response.');
+        }
+
+        return rawCategories
+            .whereType<Map>()
+            .map((category) => CategoryModel.fromJson(
+                  Map<String, dynamic>.from(category),
+                ))
+            .toList();
+      },
+    );
+  }
+}

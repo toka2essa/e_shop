@@ -2,13 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:eshop_app/core/theme/app_colors.dart';
-import 'package:eshop_app/presentation/cubit/products/products_cubit.dart';
-import 'package:eshop_app/presentation/cubit/products/products_state.dart';
-import '../../widgets/product_card.dart';
-import '../../widgets/error_view.dart';
+import 'package:eshop_app/presentation/cubit/app/app_cubit.dart';
+import 'package:eshop_app/presentation/cubit/app/app_state.dart';
+import '../widgets/product_card.dart';
+import '../widgets/error_view.dart';
 
-class ProductScreen extends StatelessWidget {
+class ProductScreen extends StatefulWidget {
   const ProductScreen({super.key});
+
+  @override
+  State<ProductScreen> createState() => _ProductScreenState();
+}
+
+class _ProductScreenState extends State<ProductScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<AppCubit>().getProducts();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,12 +33,20 @@ class ProductScreen extends StatelessWidget {
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_active_outlined, color: AppColors.textPrimary, size: 20),
+            icon: const Icon(
+              Icons.notifications_active_outlined,
+              color: AppColors.textPrimary,
+              size: 20,
+            ),
             onPressed: () {},
           ),
         ],
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            color: AppColors.textPrimary,
+            size: 20,
+          ),
           onPressed: () => context.pop(),
         ),
         title: const Text(
@@ -37,28 +60,29 @@ class ProductScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
-      body: BlocBuilder<ProductsCubit, ProductsState>(
+      body: BlocBuilder<AppCubit, AppState>(
         builder: (context, state) {
-          if (state is ProductsLoading || state is ProductsInitial) {
+          if (state.status == AppStatus.loading ||
+              state.status == AppStatus.initial) {
             return const Center(
               child: CircularProgressIndicator(color: AppColors.primaryOrange),
             );
           }
 
-          if (state is ProductsError) {
+          if (state.status == AppStatus.failure) {
             return ErrorView(
-              onRetry: () => context.read<ProductsCubit>().getProducts(),
-              message: state.message,
+              onRetry: () => context.read<AppCubit>().getProducts(),
+              message: state.message ?? 'Something went wrong',
             );
           }
 
-          if (state is ProductsLoaded) {
+          if (state.status == AppStatus.success) {
             final products = state.products;
 
             if (products.isEmpty) {
               return RefreshIndicator(
                 color: AppColors.primaryOrange,
-                onRefresh: () => context.read<ProductsCubit>().getProducts(),
+                onRefresh: () => context.read<AppCubit>().getProducts(),
                 child: ListView(
                   children: const [
                     SizedBox(height: 100),
@@ -75,7 +99,7 @@ class ProductScreen extends StatelessWidget {
 
             return RefreshIndicator(
               color: AppColors.primaryOrange,
-              onRefresh: () => context.read<ProductsCubit>().getProducts(),
+              onRefresh: () => context.read<AppCubit>().getProducts(),
               child: GridView.builder(
                 padding: const EdgeInsets.all(16),
                 itemCount: products.length,

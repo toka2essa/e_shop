@@ -1,6 +1,6 @@
 import 'package:eshop_app/app/routes/app_pages.dart';
 import 'package:flutter/material.dart';
-import 'package:eshop_app/domain/auth/entities/product.dart';
+import 'package:eshop_app/domain/entities/product.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 
@@ -12,7 +12,9 @@ class ProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => context.push('/product/${product.id}'),
+      onTap: () => context.push(
+        AppRoutes.productDetails.replaceFirst(':id', product.id),
+      ),
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.secondaryButtonColor,

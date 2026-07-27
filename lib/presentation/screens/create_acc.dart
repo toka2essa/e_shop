@@ -1,12 +1,12 @@
 import 'package:eshop_app/core/theme/app_colors.dart';
-import 'package:eshop_app/presentation/cubit/auth/auth_cubit.dart';
-import 'package:eshop_app/presentation/cubit/auth/auth_state.dart';
+import 'package:eshop_app/presentation/cubit/app/app_cubit.dart';
+import 'package:eshop_app/presentation/cubit/app/app_state.dart';
 import 'package:eshop_app/presentation/widgets/custom_buttonwidget.dart';
 import 'package:eshop_app/presentation/widgets/custom_textformfiled.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import '../../../app/routes/app_pages.dart';
+import '../../app/routes/app_pages.dart';
 
 class CreateAcc extends StatelessWidget {
   CreateAcc({super.key});
@@ -21,17 +21,24 @@ class CreateAcc extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<AuthCubit, AuthState>(
+    return BlocConsumer<AppCubit, AppState>(
       listener: (context, state) {
-        if (state is AuthSuccess) {
+        if (state.status == AppStatus.success &&
+            state.action == AppAction.signUp) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message), backgroundColor: Colors.green),
+            SnackBar(
+              content: Text(state.message ?? 'Success'),
+              backgroundColor: Colors.green,
+            ),
           );
-          // الانتقال مع تمرير الإيميل ليكون متاحاً في شاشة الـ OTP
           context.go(AppRoutes.otp, extra: _emailController.text.trim());
-        } else if (state is AuthFailure) {
+        } else if (state.status == AppStatus.failure &&
+            state.action == AppAction.signUp) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+            SnackBar(
+              content: Text(state.message ?? 'Something went wrong'),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       },
@@ -42,7 +49,11 @@ class CreateAcc extends StatelessWidget {
             backgroundColor: Colors.transparent,
             elevation: 0,
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
+              icon: const Icon(
+                Icons.arrow_back_ios_new,
+                color: AppColors.textPrimary,
+                size: 20,
+              ),
               onPressed: () => context.pop(),
             ),
           ),
@@ -75,22 +86,33 @@ class CreateAcc extends StatelessWidget {
                     CustomTextFormField(
                       controller: _firstNameController,
                       hintText: "First Name",
-                      prefixIcon: const Icon(Icons.person_outline, color: AppColors.textSecondary),
-                      validator: (value) => value == null || value.isEmpty ? "Required" : null,
+                      prefixIcon: const Icon(
+                        Icons.person_outline,
+                        color: AppColors.textSecondary,
+                      ),
+                      validator: (value) =>
+                          value == null || value.isEmpty ? "Required" : null,
                     ),
                     const SizedBox(height: 20),
                     CustomTextFormField(
                       controller: _lastNameController,
                       hintText: "Last Name",
-                      prefixIcon: const Icon(Icons.person_outline, color: AppColors.textSecondary),
-                      validator: (value) => value == null || value.isEmpty ? "Required" : null,
+                      prefixIcon: const Icon(
+                        Icons.person_outline,
+                        color: AppColors.textSecondary,
+                      ),
+                      validator: (value) =>
+                          value == null || value.isEmpty ? "Required" : null,
                     ),
                     const SizedBox(height: 20),
                     CustomTextFormField(
                       controller: _emailController,
                       hintText: "Email Address",
                       keyboardType: TextInputType.emailAddress,
-                      prefixIcon: const Icon(Icons.email_outlined, color: AppColors.textSecondary),
+                      prefixIcon: const Icon(
+                        Icons.email_outlined,
+                        color: AppColors.textSecondary,
+                      ),
                       validator: (value) {
                         if (value == null || value.isEmpty) return "Required";
                         if (!value.contains('@')) return "Invalid email";
@@ -105,30 +127,37 @@ class CreateAcc extends StatelessWidget {
                           controller: _passwordController,
                           hintText: "Password",
                           obscureText: !isVisible,
-                          prefixIcon: const Icon(Icons.lock_outline, color: AppColors.textSecondary),
+                          prefixIcon: const Icon(
+                            Icons.lock_outline,
+                            color: AppColors.textSecondary,
+                          ),
                           suffixIcon: IconButton(
                             icon: Icon(
-                              isVisible ? Icons.visibility : Icons.visibility_off,
+                              isVisible
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
                               color: AppColors.textSecondary,
                             ),
-                            onPressed: () => _isPasswordVisible.value = !isVisible,
+                            onPressed: () =>
+                                _isPasswordVisible.value = !isVisible,
                           ),
-                          validator: (value) => (value?.length ?? 0) < 6 ? "Too short" : null,
+                          validator: (value) =>
+                              (value?.length ?? 0) < 6 ? "Too short" : null,
                         );
                       },
                     ),
                     const SizedBox(height: 40),
                     CustomButton(
                       text: "Sign Up",
-                      isLoading: state is AuthLoading,
+                      isLoading: state.status == AppStatus.loading,
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
-                          context.read<AuthCubit>().signUp(
-                                firstName: _firstNameController.text.trim(),
-                                lastName: _lastNameController.text.trim(),
-                                email: _emailController.text.trim(),
-                                password: _passwordController.text,
-                              );
+                          context.read<AppCubit>().signUp(
+                            firstName: _firstNameController.text.trim(),
+                            lastName: _lastNameController.text.trim(),
+                            email: _emailController.text.trim(),
+                            password: _passwordController.text,
+                          );
                         }
                       },
                     ),

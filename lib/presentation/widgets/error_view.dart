@@ -15,13 +15,17 @@ class ErrorView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, color: Colors.redAccent, size: 60),
+            const Icon(
+              Icons.error_outline,
+              color: AppColors.primaryOrange,
+              size: 60,
+            ),
             const SizedBox(height: 16),
             Text(
               message,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                color: AppColors.textSecondary,
+                color: AppColors.textPrimary,
                 fontSize: 16,
               ),
             ),
@@ -30,7 +34,10 @@ class ErrorView extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryOrange,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),

@@ -130,6 +130,10 @@ class Api implements ApiConsumer {
   String _errorMessage(DioException error) {
     final data = error.response?.data;
 
+    if (error.response?.statusCode == 401) {
+      return 'Your session has expired. Please log in again.';
+    }
+
     if (data != null) {
       if (data is Map) {
         if (data['errors'] != null) {

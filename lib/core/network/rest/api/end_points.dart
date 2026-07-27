@@ -8,4 +8,5 @@ abstract class EndPoints {
   
   static const String products = 'products';
   static String productDetails(String id) => 'products/$id';
+  static const String categories = 'Categories';
 }

@@ -2,9 +2,9 @@ import 'package:eshop_app/core/theme/app_colors.dart';
 import 'package:eshop_app/core/theme/app_design.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../app/routes/app_pages.dart';
-import '../../../app/routes/app_routes.dart';
-import '../../widgets/custom_buttonwidget.dart';
+import '../../app/routes/app_pages.dart';
+import '../../app/routes/app_routes.dart';
+import '../widgets/custom_buttonwidget.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});

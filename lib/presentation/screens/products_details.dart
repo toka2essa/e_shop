@@ -1,40 +1,56 @@
 import 'package:eshop_app/core/theme/app_colors.dart';
-import 'package:eshop_app/presentation/cubit/products/product_details_cubit.dart';
-import 'package:eshop_app/presentation/cubit/products/product_details_state.dart';
+import 'package:eshop_app/presentation/cubit/app/app_cubit.dart';
+import 'package:eshop_app/presentation/cubit/app/app_state.dart';
 import 'package:eshop_app/presentation/widgets/error_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-class ProductDetailsScreen extends StatelessWidget {
-  const ProductDetailsScreen({super.key});
+class ProductDetailsScreen extends StatefulWidget {
+  final String productId;
+
+  const ProductDetailsScreen({super.key, required this.productId});
+
+  @override
+  State<ProductDetailsScreen> createState() => _ProductDetailsScreenState();
+}
+
+class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<AppCubit>().getProductDetails(widget.productId);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
-      body: BlocBuilder<ProductDetailsCubit, ProductDetailsState>(
+      body: BlocBuilder<AppCubit, AppState>(
         builder: (context, state) {
-          if (state is ProductDetailsLoading) {
+          if (state.status == AppStatus.loading) {
             return const Center(
               child: CircularProgressIndicator(color: AppColors.primaryOrange),
             );
           }
 
-          if (state is ProductDetailsError) {
+          if (state.status == AppStatus.failure) {
             return ErrorView(
-              message: state.message,
-              onRetry: () {
-                // The ID is normally passed from the router, 
-                // but since the Cubit is already created with the fetch call, 
-                // we might need a way to trigger it again if it failed.
-                // In app_routes.dart, we call ..getProductDetails(id).
-              },
+              message: state.message ?? 'Something went wrong',
+              onRetry: () =>
+                  context.read<AppCubit>().getProductDetails(widget.productId),
             );
           }
 
-          if (state is ProductDetailsLoaded) {
-            final product = state.product;
+          if (state.status == AppStatus.success) {
+            final product = state.selectedProduct;
+            if (product == null) {
+              return const SizedBox.shrink();
+            }
             return CustomScrollView(
               slivers: [
                 SliverAppBar(
@@ -42,13 +58,17 @@ class ProductDetailsScreen extends StatelessWidget {
                   pinned: true,
                   backgroundColor: AppColors.backgroundColor,
                   leading: IconButton(
-                    icon:  Container(
+                    icon: Container(
                       padding: EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: Colors.black26,
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+                      child: Icon(
+                        Icons.arrow_back_ios_new,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                     ),
                     onPressed: () => context.pop(),
                   ),
@@ -57,12 +77,21 @@ class ProductDetailsScreen extends StatelessWidget {
                         ? Image.network(
                             product.imageUrl,
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => const Center(
-                              child: Icon(Icons.image_not_supported, size: 100, color: AppColors.textSecondary),
-                            ),
+                            errorBuilder: (context, error, stackTrace) =>
+                                const Center(
+                                  child: Icon(
+                                    Icons.image_not_supported,
+                                    size: 100,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
                           )
                         : const Center(
-                            child: Icon(Icons.image_not_supported, size: 100, color: AppColors.textSecondary),
+                            child: Icon(
+                              Icons.image_not_supported,
+                              size: 100,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
                   ),
                 ),
@@ -127,9 +156,10 @@ class ProductDetailsScreen extends StatelessWidget {
           return const SizedBox.shrink();
         },
       ),
-      bottomSheet: BlocBuilder<ProductDetailsCubit, ProductDetailsState>(
+      bottomSheet: BlocBuilder<AppCubit, AppState>(
         builder: (context, state) {
-          if (state is ProductDetailsLoaded) {
+          if (state.status == AppStatus.success &&
+              state.selectedProduct != null) {
             return Container(
               padding: const EdgeInsets.all(24),
               color: AppColors.backgroundColor,
