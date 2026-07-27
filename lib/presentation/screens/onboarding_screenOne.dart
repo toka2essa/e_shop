@@ -5,6 +5,7 @@ import 'package:eshop_app/presentation/cubit/app/app_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../app/routes/app_pages.dart';
 import '../widgets/onboarding_card_widget.dart';
 import '../widgets/top_header_widget.dart';
@@ -12,7 +13,10 @@ import '../widgets/top_header_widget.dart';
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
 
-  void _navigateToHome(BuildContext context) {
+  Future<void> _navigateToHome(BuildContext context) async {
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setBool('onboarding_completed', true);
+    if (!context.mounted) return;
     context.go(AppRoutes.welcome);
   }
 
