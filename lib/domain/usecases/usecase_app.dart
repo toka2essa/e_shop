@@ -1,0 +1,133 @@
+import 'package:eshop_app/core/network/rest/errors/failures.dart';
+import 'package:eshop_app/domain/entities/product.dart';
+import 'package:eshop_app/domain/repositories/app_repository.dart';
+import 'package:fpdart/fpdart.dart';
+
+class GetProductDetailsUseCase {
+  final ProductRepository repository;
+
+  GetProductDetailsUseCase(this.repository);
+
+  Future<Either<ServerFailure, Product>> call(String id) {
+    return repository.getProductById(id);
+  }
+}
+
+class GetProductsUseCase {
+  final ProductRepository _repository;
+
+  GetProductsUseCase(this._repository);
+
+  Future<Either<ServerFailure, List<Product>>> call({String? categoryId}) {
+    return _repository.getProducts(categoryId: categoryId);
+  }
+}
+
+class SignUpUseCase {
+  final AuthRepository repository;
+
+  SignUpUseCase(this.repository);
+
+  Future<Either<ServerFailure, String>> call({
+    required String firstName,
+    required String lastName,
+    required String email,
+    required String password,
+  }) {
+    return repository.signUp(
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      password: password,
+    );
+  }
+}
+
+class VerifyEmailUseCase {
+  final AuthRepository repository;
+
+  VerifyEmailUseCase(this.repository);
+
+  Future<Either<ServerFailure, String>> call({
+    required String email,
+    required String otp,
+  }) {
+    return repository.verifyEmail(email: email, otp: otp);
+  }
+}
+
+class ResendOtpUseCase {
+  final AuthRepository repository;
+
+  ResendOtpUseCase(this.repository);
+
+  Future<Either<ServerFailure, String>> call(String email) {
+    return repository.resendOtp(email: email);
+  }
+}
+
+class LoginUseCase {
+  final AuthRepository repository;
+
+  LoginUseCase(this.repository);
+
+  Future<Either<ServerFailure, String>> call({
+    required String email,
+    required String password,
+  }) {
+    return repository.login(email: email, password: password);
+  }
+}
+
+class GetCategoriesUseCase {
+  final CategoryRepository repository;
+
+  GetCategoriesUseCase(this.repository);
+
+  Future<List<CategoryEntity>> call() async {
+    return await repository.getCategories();
+  }
+}
+
+class GetCartUseCase {
+  final CartRepository repository;
+
+  GetCartUseCase(this.repository);
+
+  Future<List<CartItem>> call() async {
+    return await repository.getCartItems();
+  }
+}
+
+class AddToCartUseCase {
+  final CartRepository repository;
+
+  AddToCartUseCase(this.repository);
+
+  Future<CartItem> call({
+    required String productId,
+    required int quantity,
+  }) async {
+    return await repository.addToCart(productId: productId, quantity: quantity);
+  }
+}
+
+class RemoveCartItemUseCase {
+  final CartRepository repository;
+
+  RemoveCartItemUseCase(this.repository);
+
+  Future<void> call(String id) async {
+    return await repository.removeCartItem(id);
+  }
+}
+
+class UpdateCartItemUseCase {
+  final CartRepository repository;
+
+  UpdateCartItemUseCase(this.repository);
+
+  Future<CartItem> call({required String id, required int quantity}) async {
+    return await repository.updateCartItem(id: id, quantity: quantity);
+  }
+}
