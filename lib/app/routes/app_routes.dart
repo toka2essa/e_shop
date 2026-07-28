@@ -1,8 +1,6 @@
 import 'package:eshop_app/presentation/screens/home.dart';
 import 'package:eshop_app/presentation/screens/main_scaffold.dart';
 import 'package:eshop_app/presentation/screens/cart_screen.dart';
-import 'package:eshop_app/presentation/screens/onboarding_three.dart';
-import 'package:eshop_app/presentation/screens/onboarding_two.dart';
 import 'package:eshop_app/presentation/screens/settings_screen.dart';
 import 'package:eshop_app/presentation/screens/products_details.dart';
 import 'package:flutter/material.dart';
@@ -30,14 +28,6 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.onboarding,
       builder: (context, state) => const OnboardingScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.onboarding,
-      builder: (context, state) => OnboardingTwo(),
-    ),
-    GoRoute(
-      path: AppRoutes.onboarding,
-      builder: (context, state) => OnboardingThree(),
     ),
     GoRoute(
       path: AppRoutes.welcome,

@@ -42,18 +42,20 @@ class AuthRepositoryImpl implements AuthRepository {
       password: password,
     );
 
-    return result.fold(
-      (failure) => Left<ServerFailure, String>(failure),
-      (data) {
-        final bool isSuccess = _parseIsSuccess(data);
-        final message = _parseMessage(data, 'Registration completed successfully.');
-            
-        if (!isSuccess) {
-          return Left<ServerFailure, String>(ServerFailure(message));
-        }
-        return Right<ServerFailure, String>(message);
-      },
-    );
+    return result.fold((failure) => Left<ServerFailure, String>(failure), (
+      data,
+    ) {
+      final bool isSuccess = _parseIsSuccess(data);
+      final message = _parseMessage(
+        data,
+        'Registration completed successfully.',
+      );
+
+      if (!isSuccess) {
+        return Left<ServerFailure, String>(ServerFailure(message));
+      }
+      return Right<ServerFailure, String>(message);
+    });
   }
 
   @override
@@ -66,26 +68,25 @@ class AuthRepositoryImpl implements AuthRepository {
       password: password,
     );
 
-    return result.fold(
-      (failure) => Left<ServerFailure, String>(failure),
-      (data) async {
-        final bool isSuccess = _parseIsSuccess(data);
-        final message = _parseMessage(data, 'Login successful.');
-            
-        if (!isSuccess) {
-          return Left<ServerFailure, String>(ServerFailure(message));
-        }
+    return result.fold((failure) => Left<ServerFailure, String>(failure), (
+      data,
+    ) async {
+      final bool isSuccess = _parseIsSuccess(data);
+      final message = _parseMessage(data, 'Login successful.');
 
-        final token = _extractToken(data);
-        if (token == null) {
-          return Left<ServerFailure, String>(
-            ServerFailure('Login succeeded but no access token was returned.'),
-          );
-        }
-        await _tokenStorage.save(token);
-        return Right<ServerFailure, String>(message);
-      },
-    );
+      if (!isSuccess) {
+        return Left<ServerFailure, String>(ServerFailure(message));
+      }
+
+      final token = _extractToken(data);
+      if (token == null) {
+        return Left<ServerFailure, String>(
+          ServerFailure('Login succeeded but no access token was returned.'),
+        );
+      }
+      await _tokenStorage.save(token);
+      return Right<ServerFailure, String>(message);
+    });
   }
 
   String? _extractToken(Map<String, dynamic> data) {
@@ -109,26 +110,24 @@ class AuthRepositoryImpl implements AuthRepository {
     required String email,
     required String otp,
   }) async {
-    final result = await remoteDataSource.verifyEmail(
-      email: email,
-      otp: otp,
-    );
+    final result = await remoteDataSource.verifyEmail(email: email, otp: otp);
 
-    return result.fold(
-      (failure) => Left<ServerFailure, String>(failure),
-      (data) {
-        final bool isSuccess = _parseIsSuccess(data);
-        final message = _parseMessage(
-          data,
-          isSuccess ? 'Email verified successfully.' : 'Invalid verification code.',
-        );
+    return result.fold((failure) => Left<ServerFailure, String>(failure), (
+      data,
+    ) {
+      final bool isSuccess = _parseIsSuccess(data);
+      final message = _parseMessage(
+        data,
+        isSuccess
+            ? 'Email verified successfully.'
+            : 'Invalid verification code.',
+      );
 
-        if (!isSuccess) {
-          return Left<ServerFailure, String>(ServerFailure(message));
-        }
-        return Right<ServerFailure, String>(message);
-      },
-    );
+      if (!isSuccess) {
+        return Left<ServerFailure, String>(ServerFailure(message));
+      }
+      return Right<ServerFailure, String>(message);
+    });
   }
 
   @override
@@ -137,20 +136,20 @@ class AuthRepositoryImpl implements AuthRepository {
   }) async {
     final result = await remoteDataSource.resendOtp(email: email);
 
-    return result.fold(
-      (failure) => Left<ServerFailure, String>(failure),
-      (data) {
-        final bool isSuccess = _parseIsSuccess(data);
-        final message = _parseMessage(data, 'OTP sent successfully.');
-            
-        if (!isSuccess) {
-          return Left<ServerFailure, String>(ServerFailure(message));
-        }
-        return Right<ServerFailure, String>(message);
-      },
-    );
+    return result.fold((failure) => Left<ServerFailure, String>(failure), (
+      data,
+    ) {
+      final bool isSuccess = _parseIsSuccess(data);
+      final message = _parseMessage(data, 'OTP sent successfully.');
+
+      if (!isSuccess) {
+        return Left<ServerFailure, String>(ServerFailure(message));
+      }
+      return Right<ServerFailure, String>(message);
+    });
   }
 }
+
 abstract class SplashRepository {
   Future<bool> checkIsFirstTime();
   Future<void> saveFirstTimeCompleted();
@@ -171,6 +170,7 @@ class SplashRepositoryImpl implements SplashRepository {
     return localDataSource.setFirstTimeCompleted();
   }
 }
+
 class ProductRepositoryImpl implements ProductRepository {
   final ProductRemoteDataSource _remoteDataSource;
 
@@ -188,12 +188,12 @@ class ProductRepositoryImpl implements ProductRepository {
 }
 
 class CategoryRepositoryImpl implements CategoryRepository {
-  final CategoryRemoteDataSource _remoteDataSource;
+  final CategoryRemoteDataSource remoteDataSource;
 
-  CategoryRepositoryImpl(this._remoteDataSource);
+  CategoryRepositoryImpl(this.remoteDataSource);
 
   @override
-  Future<List<CategoryEntity>> getCategories() {
-    return _remoteDataSource.getCategories();
+  Future<List<CategoryModel>> getCategories() {
+    return remoteDataSource.getCategories();
   }
 }

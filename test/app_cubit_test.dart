@@ -1,6 +1,6 @@
 import 'package:eshop_app/core/network/rest/errors/failures.dart';
 import 'package:eshop_app/domain/repositories/app_repository.dart';
-import 'package:eshop_app/domain/usecases/login_use_case.dart';
+import 'package:eshop_app/domain/usecases/usecase_app.dart';
 import 'package:eshop_app/presentation/cubit/app/app_cubit.dart';
 import 'package:eshop_app/presentation/cubit/app/app_state.dart';
 import 'package:flutter_test/flutter_test.dart';

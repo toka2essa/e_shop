@@ -103,7 +103,7 @@ class ProductRemoteDataSource {
       return itemsList
           .whereType<Map>()
           .map((item) => Product.fromJson(Map<String, dynamic>.from(item)))
-            .toList();
+          .toList();
     });
   }
 
@@ -170,30 +170,28 @@ class CategoryRemoteDataSourceImpl implements CategoryRemoteDataSource {
   @override
   Future<List<CategoryModel>> getCategories() async {
     final token = await _tokenStorage.read();
-    if (token == null || token.isEmpty) {
-      throw Exception('Please log in to load categories.');
-    }
 
     final result = await _api.get(
       path: EndPoints.categories,
-      headers: {'Authorization': 'Bearer $token'},
+      headers: token == null || token.isEmpty
+          ? null
+          : {'Authorization': 'Bearer $token'},
     );
 
-    return result.fold(
-      (failure) => throw Exception(failure.message),
-      (data) {
-        final rawCategories = data['items'] ?? data['data'] ?? data['categories'] ?? data;
-        if (rawCategories is! List) {
-          throw Exception('Invalid categories response.');
-        }
+    return result.fold((failure) => throw Exception(failure.message), (data) {
+      final rawCategories =
+          data['items'] ?? data['data'] ?? data['categories'] ?? data;
 
-        return rawCategories
-            .whereType<Map>()
-            .map((category) => CategoryModel.fromJson(
-                  Map<String, dynamic>.from(category),
-                ))
-            .toList();
-      },
-    );
+      if (rawCategories is! List) {
+        throw Exception('Invalid categories response');
+      }
+
+      return rawCategories
+          .whereType<Map>()
+          .map<CategoryModel>(
+            (e) => CategoryModel.fromJson(Map<String, dynamic>.from(e)),
+          )
+          .toList();
+    });
   }
 }

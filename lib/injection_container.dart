@@ -8,7 +8,6 @@ import 'package:eshop_app/infrastructure/repositories/repository_impl.dart';
 import 'package:eshop_app/presentation/cubit/app/app_cubit.dart';
 import 'package:get_it/get_it.dart';
 
-
 final sl = GetIt.instance;
 
 void setupDependencies() {
@@ -19,7 +18,9 @@ void setupDependencies() {
     () => AuthRemoteDataSource(sl()),
   );
 
-  sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(sl(), sl()));
+  sl.registerLazySingleton<AuthRepository>(
+    () => AuthRepositoryImpl(sl(), sl()),
+  );
 
   sl.registerLazySingleton<ProductRemoteDataSource>(
     () => ProductRemoteDataSource(sl(), sl()),
@@ -27,14 +28,6 @@ void setupDependencies() {
 
   sl.registerLazySingleton<ProductRepository>(
     () => ProductRepositoryImpl(sl()),
-  );
-
-  sl.registerLazySingleton<CategoryRemoteDataSource>(
-    () => CategoryRemoteDataSourceImpl(sl(), sl()),
-  );
-
-  sl.registerLazySingleton<CategoryRepository>(
-    () => CategoryRepositoryImpl(sl()),
   );
 
   sl.registerLazySingleton<SignUpUseCase>(() => SignUpUseCase(sl()));
@@ -49,6 +42,14 @@ void setupDependencies() {
 
   sl.registerLazySingleton<GetProductDetailsUseCase>(
     () => GetProductDetailsUseCase(sl()),
+  );
+
+  sl.registerLazySingleton<CategoryRemoteDataSource>(
+    () => CategoryRemoteDataSourceImpl(sl(), sl()),
+  );
+
+  sl.registerLazySingleton<CategoryRepository>(
+    () => CategoryRepositoryImpl(sl()),
   );
 
   sl.registerLazySingleton<GetCategoriesUseCase>(

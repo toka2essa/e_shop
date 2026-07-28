@@ -31,3 +31,8 @@ abstract class ProductRepository {
 abstract class CategoryRepository {
   Future<List<CategoryEntity>> getCategories();
 }
+
+abstract class CategorydetailsRepository {
+  Future<List<CategoryEntity>> getCategories();
+  Future<CategoryEntity> getCategoryById(String id);
+}
