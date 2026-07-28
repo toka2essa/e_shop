@@ -18,8 +18,8 @@ class GetProductsUseCase {
 
   GetProductsUseCase(this._repository);
 
-  Future<Either<ServerFailure, List<Product>>> call() {
-    return _repository.getProducts();
+  Future<Either<ServerFailure, List<Product>>> call({String? categoryId}) {
+    return _repository.getProducts(categoryId: categoryId);
   }
 }
 
@@ -86,5 +86,48 @@ class GetCategoriesUseCase {
 
   Future<List<CategoryEntity>> call() async {
     return await repository.getCategories();
+  }
+}
+
+class GetCartUseCase {
+  final CartRepository repository;
+
+  GetCartUseCase(this.repository);
+
+  Future<List<CartItem>> call() async {
+    return await repository.getCartItems();
+  }
+}
+
+class AddToCartUseCase {
+  final CartRepository repository;
+
+  AddToCartUseCase(this.repository);
+
+  Future<CartItem> call({
+    required String productId,
+    required int quantity,
+  }) async {
+    return await repository.addToCart(productId: productId, quantity: quantity);
+  }
+}
+
+class RemoveCartItemUseCase {
+  final CartRepository repository;
+
+  RemoveCartItemUseCase(this.repository);
+
+  Future<void> call(String id) async {
+    return await repository.removeCartItem(id);
+  }
+}
+
+class UpdateCartItemUseCase {
+  final CartRepository repository;
+
+  UpdateCartItemUseCase(this.repository);
+
+  Future<CartItem> call({required String id, required int quantity}) async {
+    return await repository.updateCartItem(id: id, quantity: quantity);
   }
 }

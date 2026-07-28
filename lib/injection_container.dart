@@ -52,8 +52,26 @@ void setupDependencies() {
     () => CategoryRepositoryImpl(sl()),
   );
 
+  sl.registerLazySingleton<CartRemoteDataSource>(
+    () => CartRemoteDataSourceImpl(sl(), sl()),
+  );
+
+  sl.registerLazySingleton<CartRepository>(() => CartRepositoryImpl(sl()));
+
   sl.registerLazySingleton<GetCategoriesUseCase>(
     () => GetCategoriesUseCase(sl()),
+  );
+
+  sl.registerLazySingleton<GetCartUseCase>(() => GetCartUseCase(sl()));
+
+  sl.registerLazySingleton<AddToCartUseCase>(() => AddToCartUseCase(sl()));
+
+  sl.registerLazySingleton<RemoveCartItemUseCase>(
+    () => RemoveCartItemUseCase(sl()),
+  );
+
+  sl.registerLazySingleton<UpdateCartItemUseCase>(
+    () => UpdateCartItemUseCase(sl()),
   );
 
   sl.registerFactory<CategoriesCubit>(
@@ -68,6 +86,10 @@ void setupDependencies() {
       resendOtpUseCase: sl(),
       getProductsUseCase: sl(),
       getProductDetailsUseCase: sl(),
+      getCartUseCase: sl(),
+      addToCartUseCase: sl(),
+      removeCartItemUseCase: sl(),
+      updateCartItemUseCase: sl(),
     ),
   );
 }

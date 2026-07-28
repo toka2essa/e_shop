@@ -177,8 +177,10 @@ class ProductRepositoryImpl implements ProductRepository {
   ProductRepositoryImpl(this._remoteDataSource);
 
   @override
-  Future<Either<ServerFailure, List<Product>>> getProducts() {
-    return _remoteDataSource.getProducts();
+  Future<Either<ServerFailure, List<Product>>> getProducts({
+    String? categoryId,
+  }) {
+    return _remoteDataSource.getProducts(categoryId: categoryId);
   }
 
   @override
@@ -195,5 +197,34 @@ class CategoryRepositoryImpl implements CategoryRepository {
   @override
   Future<List<CategoryModel>> getCategories() {
     return remoteDataSource.getCategories();
+  }
+}
+
+class CartRepositoryImpl implements CartRepository {
+  final CartRemoteDataSource remoteDataSource;
+
+  CartRepositoryImpl(this.remoteDataSource);
+
+  @override
+  Future<List<CartItem>> getCartItems() {
+    return remoteDataSource.getCartItems();
+  }
+
+  @override
+  Future<CartItem> addToCart({
+    required String productId,
+    required int quantity,
+  }) {
+    return remoteDataSource.addToCart(productId: productId, quantity: quantity);
+  }
+
+  @override
+  Future<void> removeCartItem(String id) {
+    return remoteDataSource.removeCartItem(id);
+  }
+
+  @override
+  Future<CartItem> updateCartItem({required String id, required int quantity}) {
+    return remoteDataSource.updateCartItem(id: id, quantity: quantity);
   }
 }

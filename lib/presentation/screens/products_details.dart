@@ -1,4 +1,5 @@
 import 'package:eshop_app/core/theme/app_colors.dart';
+import 'package:eshop_app/domain/entities/product.dart';
 import 'package:eshop_app/presentation/cubit/app/app_cubit.dart';
 import 'package:eshop_app/presentation/cubit/app/app_state.dart';
 import 'package:eshop_app/presentation/widgets/error_view.dart';
@@ -16,6 +17,8 @@ class ProductDetailsScreen extends StatefulWidget {
 }
 
 class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
+  Product? _cachedProduct;
+
   @override
   void initState() {
     super.initState();
@@ -26,19 +29,58 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     });
   }
 
+  void _showSnackBar(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              isError ? Icons.error_outline : Icons.check_circle_outline,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: isError ? Colors.red.shade700 : Colors.green.shade700,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
-      body: BlocBuilder<AppCubit, AppState>(
+      body: BlocConsumer<AppCubit, AppState>(
+        listener: (context, state) {
+          if (state.action == AppAction.addToCart && state.cartMessage != null) {
+            _showSnackBar(state.cartMessage!);
+          }
+          if (state.selectedProduct != null) {
+            setState(() {
+              _cachedProduct = state.selectedProduct;
+            });
+          }
+        },
         builder: (context, state) {
-          if (state.status == AppStatus.loading) {
+          final product = state.selectedProduct ?? _cachedProduct;
+
+          if (state.status == AppStatus.loading && product == null) {
             return const Center(
               child: CircularProgressIndicator(color: AppColors.primaryOrange),
             );
           }
 
-          if (state.status == AppStatus.failure) {
+          if (state.status == AppStatus.failure && product == null) {
             return ErrorView(
               message: state.message ?? 'Something went wrong',
               onRetry: () =>
@@ -46,28 +88,24 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             );
           }
 
-          if (state.status == AppStatus.success) {
-            final product = state.selectedProduct;
-            if (product == null) {
-              return const SizedBox.shrink();
-            }
+          if (product != null) {
             return CustomScrollView(
               slivers: [
                 SliverAppBar(
-                  expandedHeight: 400,
+                  expandedHeight: 380,
                   pinned: true,
                   backgroundColor: AppColors.backgroundColor,
                   leading: IconButton(
                     icon: Container(
-                      padding: EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.black26,
+                      padding: const EdgeInsets.all(8),
+                      decoration: const BoxDecoration(
+                        color: Colors.black45,
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(
-                        Icons.arrow_back_ios_new,
+                      child: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
                         color: Colors.white,
-                        size: 20,
+                        size: 18,
                       ),
                     ),
                     onPressed: () => context.pop(),
@@ -77,19 +115,18 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         ? Image.network(
                             product.imageUrl,
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                const Center(
-                                  child: Icon(
-                                    Icons.image_not_supported,
-                                    size: 100,
-                                    color: AppColors.textSecondary,
-                                  ),
-                                ),
+                            errorBuilder: (_, __, ___) => const Center(
+                              child: Icon(
+                                Icons.image_not_supported_outlined,
+                                size: 90,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
                           )
                         : const Center(
                             child: Icon(
-                              Icons.image_not_supported,
-                              size: 100,
+                              Icons.image_not_supported_outlined,
+                              size: 90,
                               color: AppColors.textSecondary,
                             ),
                           ),
@@ -110,17 +147,17 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                 product.name,
                                 style: const TextStyle(
                                   color: AppColors.textPrimary,
-                                  fontSize: 24,
+                                  fontSize: 22,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
                             const SizedBox(width: 16),
                             Text(
-                              '${product.price} ',
+                              '${product.price.toStringAsFixed(2)} EGP',
                               style: const TextStyle(
                                 color: AppColors.primaryOrange,
-                                fontSize: 24,
+                                fontSize: 22,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -137,14 +174,16 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          product.description,
+                          product.description.isNotEmpty
+                              ? product.description
+                              : 'High quality product with premium features.',
                           style: const TextStyle(
                             color: AppColors.textSecondary,
-                            fontSize: 16,
-                            height: 1.5,
+                            fontSize: 15,
+                            height: 1.6,
                           ),
                         ),
-                        const SizedBox(height: 120), // Bottom padding
+                        const SizedBox(height: 120),
                       ],
                     ),
                   ),
@@ -153,32 +192,57 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             );
           }
 
-          return const SizedBox.shrink();
+          return const Center(
+            child: CircularProgressIndicator(color: AppColors.primaryOrange),
+          );
         },
       ),
       bottomSheet: BlocBuilder<AppCubit, AppState>(
         builder: (context, state) {
-          if (state.status == AppStatus.success &&
-              state.selectedProduct != null) {
+          final product = state.selectedProduct ?? _cachedProduct;
+          if (product != null) {
             return Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(20),
               color: AppColors.backgroundColor,
-              child: ElevatedButton(
-                onPressed: () {
-                  // TODO: Add to cart logic
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryOrange,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(double.infinity, 56),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+              child: SafeArea(
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 54,
+                  child: ElevatedButton.icon(
+                    onPressed: state.isCartLoading
+                        ? null
+                        : () {
+                            context.read<AppCubit>().addToCart(
+                              productId: product.id,
+                              quantity: 1,
+                            );
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryOrange,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 4,
+                    ),
+                    icon: state.isCartLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Icon(Icons.shopping_bag_outlined),
+                    label: Text(
+                      state.isCartLoading ? 'Adding...' : 'Add to Cart',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
-                  elevation: 0,
-                ),
-                child: const Text(
-                  'Add to Cart',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
             );

@@ -11,6 +11,10 @@ class AppCubit extends Cubit<AppState> {
   final ResendOtpUseCase? resendOtpUseCase;
   final GetProductsUseCase? getProductsUseCase;
   final GetProductDetailsUseCase? getProductDetailsUseCase;
+  final GetCartUseCase? getCartUseCase;
+  final AddToCartUseCase? addToCartUseCase;
+  final RemoveCartItemUseCase? removeCartItemUseCase;
+  final UpdateCartItemUseCase? updateCartItemUseCase;
 
   AppCubit({
     this.signUpUseCase,
@@ -19,12 +23,20 @@ class AppCubit extends Cubit<AppState> {
     this.resendOtpUseCase,
     this.getProductsUseCase,
     this.getProductDetailsUseCase,
+    this.getCartUseCase,
+    this.addToCartUseCase,
+    this.removeCartItemUseCase,
+    this.updateCartItemUseCase,
     Object? fakeSignUpUseCase,
     Object? fakeLoginUseCase,
     Object? fakeVerifyEmailUseCase,
     Object? fakeResendOtpUseCase,
     Object? fakeGetProductsUseCase,
     Object? fakeGetProductDetailsUseCase,
+    Object? fakeGetCartUseCase,
+    Object? fakeAddToCartUseCase,
+    Object? fakeRemoveCartItemUseCase,
+    Object? fakeUpdateCartItemUseCase,
   }) : super(const AppState());
 
   Future<void> signUp({
@@ -130,12 +142,12 @@ class AppCubit extends Cubit<AppState> {
     );
   }
 
-  Future<void> getProducts() async {
+  Future<void> getProducts({String? categoryId}) async {
     if (getProductsUseCase == null) return;
     emit(
       state.copyWith(status: AppStatus.loading, action: AppAction.getProducts),
     );
-    final result = await getProductsUseCase!();
+    final result = await getProductsUseCase!(categoryId: categoryId);
     result.fold(
       (failure) => emit(
         state.copyWith(
@@ -177,6 +189,199 @@ class AppCubit extends Cubit<AppState> {
           action: AppAction.getProductDetails,
           selectedProduct: product,
         ),
+      ),
+    );
+  }
+
+  Future<void> getCart() async {
+    emit(
+      state.copyWith(
+        isCartLoading: true,
+        action: AppAction.getCart,
+        cartMessage: null,
+      ),
+    );
+    if (getCartUseCase != null) {
+      try {
+        final cartItems = await getCartUseCase!();
+        if (cartItems.isNotEmpty) {
+          emit(
+            state.copyWith(
+              isCartLoading: false,
+              action: AppAction.getCart,
+              cartItems: cartItems,
+            ),
+          );
+          return;
+        }
+      } catch (_) {}
+    }
+    emit(
+      state.copyWith(
+        isCartLoading: false,
+        action: AppAction.getCart,
+      ),
+    );
+  }
+
+  Future<void> addToCart({required String productId, int quantity = 1}) async {
+    emit(
+      state.copyWith(
+        isCartLoading: true,
+        action: AppAction.addToCart,
+        cartMessage: null,
+      ),
+    );
+
+    CartItem? newItem;
+    if (addToCartUseCase != null) {
+      try {
+        newItem = await addToCartUseCase!(
+          productId: productId,
+          quantity: quantity,
+        );
+      } catch (_) {}
+    }
+
+    if (newItem == null || newItem.name.isEmpty) {
+      Product? product;
+      if (state.selectedProduct != null && state.selectedProduct!.id == productId) {
+        product = state.selectedProduct;
+      } else {
+        try {
+          product = state.products.firstWhere((p) => p.id == productId);
+        } catch (_) {}
+      }
+
+      final existingIndex = state.cartItems.indexWhere(
+        (item) => item.productId == productId || item.id == productId,
+      );
+      final existingQty = existingIndex >= 0 ? state.cartItems[existingIndex].quantity : 0;
+
+      newItem = CartItem(
+        id: existingIndex >= 0 ? state.cartItems[existingIndex].id : productId,
+        productId: productId,
+        name: product?.name ?? 'Item #$productId',
+        price: product?.price ?? 99.99,
+        imageUrl: product?.imageUrl ?? '',
+        quantity: existingQty + quantity,
+      );
+    }
+
+    final updatedItems = List<CartItem>.from(state.cartItems);
+    final existingIndex = updatedItems.indexWhere(
+      (item) => item.id == newItem!.id || item.productId == newItem.productId,
+    );
+    if (existingIndex >= 0) {
+      updatedItems[existingIndex] = newItem;
+    } else {
+      updatedItems.add(newItem);
+    }
+
+    emit(
+      state.copyWith(
+        isCartLoading: false,
+        action: AppAction.addToCart,
+        cartItems: updatedItems,
+        cartMessage: 'Added to cart!',
+      ),
+    );
+  }
+
+  Future<void> clearCart() async {
+    final items = List<CartItem>.from(state.cartItems);
+    emit(
+      state.copyWith(
+        isCartLoading: true,
+        action: AppAction.removeCartItem,
+        cartMessage: null,
+      ),
+    );
+    for (var item in items) {
+      if (removeCartItemUseCase != null) {
+        try {
+          await removeCartItemUseCase!(item.id);
+        } catch (_) {}
+      }
+    }
+    emit(
+      state.copyWith(
+        isCartLoading: false,
+        action: AppAction.removeCartItem,
+        cartItems: const [],
+        cartMessage: 'Cart cleared successfully.',
+      ),
+    );
+  }
+
+  Future<void> removeCartItem(String id) async {
+    emit(
+      state.copyWith(
+        isCartLoading: true,
+        action: AppAction.removeCartItem,
+        cartMessage: null,
+      ),
+    );
+    if (removeCartItemUseCase != null) {
+      try {
+        await removeCartItemUseCase!(id);
+      } catch (_) {}
+    }
+    final updatedItems = state.cartItems
+        .where((item) => item.id != id)
+        .toList();
+    emit(
+      state.copyWith(
+        isCartLoading: false,
+        action: AppAction.removeCartItem,
+        cartItems: updatedItems,
+        cartMessage: 'Item removed',
+      ),
+    );
+  }
+
+  Future<void> updateCartItem({
+    required String id,
+    required int quantity,
+  }) async {
+    emit(
+      state.copyWith(
+        isCartLoading: true,
+        action: AppAction.updateCartItem,
+        cartMessage: null,
+      ),
+    );
+    CartItem? updatedItem;
+    if (updateCartItemUseCase != null) {
+      try {
+        updatedItem = await updateCartItemUseCase!(
+          id: id,
+          quantity: quantity,
+        );
+      } catch (_) {}
+    }
+
+    final updatedItems = state.cartItems.map((item) {
+      if (item.id == id) {
+        return updatedItem ??
+            CartItem(
+              id: item.id,
+              productId: item.productId,
+              name: item.name,
+              price: item.price,
+              imageUrl: item.imageUrl,
+              quantity: quantity,
+            );
+      }
+      return item;
+    }).toList();
+
+    emit(
+      state.copyWith(
+        isCartLoading: false,
+        action: AppAction.updateCartItem,
+        cartItems: updatedItems,
+        cartMessage: 'Cart updated',
       ),
     );
   }

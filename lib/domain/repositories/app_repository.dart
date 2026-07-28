@@ -24,12 +24,24 @@ abstract class AuthRepository {
 }
 
 abstract class ProductRepository {
-  Future<Either<ServerFailure, List<Product>>> getProducts();
+  Future<Either<ServerFailure, List<Product>>> getProducts({
+    String? categoryId,
+  });
   Future<Either<ServerFailure, Product>> getProductById(String id);
 }
 
 abstract class CategoryRepository {
   Future<List<CategoryEntity>> getCategories();
+}
+
+abstract class CartRepository {
+  Future<List<CartItem>> getCartItems();
+  Future<CartItem> addToCart({
+    required String productId,
+    required int quantity,
+  });
+  Future<void> removeCartItem(String id);
+  Future<CartItem> updateCartItem({required String id, required int quantity});
 }
 
 abstract class CategorydetailsRepository {

@@ -11,4 +11,8 @@ abstract class EndPoints {
 
   static const String categories = 'categories';
   static String categoryDetails(String id) => 'categories/$id';
+
+  static const String cart = 'cart';
+  static const String cartItems = 'cart/items';
+  static String cartItemDetails(String id) => 'cart/items/$id';
 }

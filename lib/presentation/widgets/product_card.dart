@@ -1,6 +1,8 @@
 import 'package:eshop_app/app/routes/app_pages.dart';
-import 'package:flutter/material.dart';
 import 'package:eshop_app/domain/entities/product.dart';
+import 'package:eshop_app/presentation/cubit/app/app_cubit.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 
@@ -78,19 +80,52 @@ class ProductCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '${product.price} \$',
+                        '${product.price.toStringAsFixed(2)} EGP',
                         style: const TextStyle(
                           color: AppColors.primaryOrange,
                           fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                          fontSize: 15,
                         ),
                       ),
                       IconButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          context.read<AppCubit>().addToCart(
+                            productId: product.id,
+                            quantity: 1,
+                          );
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.check_circle_outline,
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      '${product.name} added to cart! 🛍️',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              backgroundColor: AppColors.primaryOrange,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              margin: const EdgeInsets.all(16),
+                            ),
+                          );
+                        },
                         icon: const Icon(
-                          Icons.add_shopping_cart,
+                          Icons.add_shopping_cart_rounded,
                           color: AppColors.primaryOrange,
-                          size: 20,
+                          size: 22,
                         ),
                       ),
                     ],

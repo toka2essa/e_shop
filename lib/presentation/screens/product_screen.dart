@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:eshop_app/core/theme/app_colors.dart';
+import 'package:eshop_app/domain/entities/product.dart';
 import 'package:eshop_app/presentation/cubit/app/app_cubit.dart';
 import 'package:eshop_app/presentation/cubit/app/app_state.dart';
 import '../widgets/product_card.dart';
 import '../widgets/error_view.dart';
 
 class ProductScreen extends StatefulWidget {
-  const ProductScreen({super.key});
+  const ProductScreen({super.key, this.category});
+
+  final CategoryEntity? category;
 
   @override
   State<ProductScreen> createState() => _ProductScreenState();
@@ -20,7 +23,9 @@ class _ProductScreenState extends State<ProductScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        context.read<AppCubit>().getProducts();
+        context.read<AppCubit>().getProducts(
+          categoryId: widget.category?.id.toString(),
+        );
       }
     });
   }
@@ -49,9 +54,9 @@ class _ProductScreenState extends State<ProductScreen> {
           ),
           onPressed: () => context.pop(),
         ),
-        title: const Text(
-          'Products',
-          style: TextStyle(
+        title: Text(
+          widget.category?.name ?? 'Products',
+          style: const TextStyle(
             color: AppColors.textPrimary,
             fontWeight: FontWeight.bold,
           ),
@@ -71,7 +76,9 @@ class _ProductScreenState extends State<ProductScreen> {
 
           if (state.status == AppStatus.failure) {
             return ErrorView(
-              onRetry: () => context.read<AppCubit>().getProducts(),
+              onRetry: () => context.read<AppCubit>().getProducts(
+                categoryId: widget.category?.id.toString(),
+              ),
               message: state.message ?? 'Something went wrong',
             );
           }

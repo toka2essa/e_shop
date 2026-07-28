@@ -10,6 +10,10 @@ enum AppAction {
   resendOtp,
   getProducts,
   getProductDetails,
+  getCart,
+  addToCart,
+  removeCartItem,
+  updateCartItem,
 }
 
 class AppState {
@@ -18,6 +22,9 @@ class AppState {
   final String? message;
   final List<Product> products;
   final Product? selectedProduct;
+  final List<CartItem> cartItems;
+  final bool isCartLoading;
+  final String? cartMessage;
   final String otpCode;
   final bool otpError;
   final bool canResend;
@@ -30,6 +37,9 @@ class AppState {
     this.message,
     this.products = const [],
     this.selectedProduct,
+    this.cartItems = const [],
+    this.isCartLoading = false,
+    this.cartMessage,
     this.otpCode = '',
     this.otpError = false,
     this.canResend = false,
@@ -45,6 +55,9 @@ class AppState {
     String? message,
     List<Product>? products,
     Product? selectedProduct,
+    List<CartItem>? cartItems,
+    bool? isCartLoading,
+    String? cartMessage,
     String? otpCode,
     bool? otpError,
     bool? canResend,
@@ -56,7 +69,10 @@ class AppState {
       action: action ?? this.action,
       message: message,
       products: products ?? this.products,
-      selectedProduct: selectedProduct,
+      selectedProduct: selectedProduct ?? this.selectedProduct,
+      cartItems: cartItems ?? this.cartItems,
+      isCartLoading: isCartLoading ?? this.isCartLoading,
+      cartMessage: cartMessage,
       otpCode: otpCode ?? this.otpCode,
       otpError: otpError ?? this.otpError,
       canResend: canResend ?? this.canResend,

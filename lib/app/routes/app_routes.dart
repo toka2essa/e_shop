@@ -3,6 +3,7 @@ import 'package:eshop_app/presentation/screens/main_scaffold.dart';
 import 'package:eshop_app/presentation/screens/cart_screen.dart';
 import 'package:eshop_app/presentation/screens/settings_screen.dart';
 import 'package:eshop_app/presentation/screens/products_details.dart';
+import 'package:eshop_app/domain/entities/product.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -76,7 +77,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.product,
       parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) => const ProductScreen(),
+      builder: (context, state) {
+        final category = state.extra as CategoryEntity?;
+        return ProductScreen(category: category);
+      },
     ),
     GoRoute(
       path: AppRoutes.productDetails,
